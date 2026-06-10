@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block title %}Kitoblarni boshqarish — Boshqaruv paneli{% endblock %}
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold">Kitoblarni boshqarish</h2>
+    <div class="d-flex gap-2">
+      <a href="{% url 'analytics:dashboard' %}" class="btn btn-outline-secondary btn-sm">Orqaga</a>
+      <a href="/admin/books/book/add/" class="btn btn-primary btn-sm"><i class="fas fa-plus me-1"></i>Kitob qo'shish</a>
+    </div>
+  </div>
+  <div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead class="table-light">
+            <tr><th>Muqova</th><th>Nomi</th><th>Muallif</th><th>Kategoriya</th><th>Narx</th><th>Ombor</th><th>Holat</th><th>Amallar</th></tr>
+          </thead>
+          <tbody>
+          {% for book in books %}
+          <tr>
+            <td>
+              {% if book.cover_image %}
+              <img src="{{ book.cover_image.url }}" width="40" height="55" style="object-fit:cover;border-radius:4px" alt="{{ book.title }}">
+              {% else %}
+              <div class="bg-light rounded d-flex align-items-center justify-content-center" style="width:40px;height:55px"><i class="fas fa-book text-muted small"></i></div>
+              {% endif %}
+            </td>
+            <td><strong>{{ book.title|truncatechars:40 }}</strong><br><small class="text-muted">{{ book.isbn }}</small></td>
+            <td class="small">{{ book.author.name|default:'-' }}</td>
+            <td class="small">{{ book.category.name|default:'-' }}</td>
+            <td class="fw-semibold">{{ book.price }} so'm</td>
+            <td><span class="badge {% if book.stock_status == 'in_stock' %}bg-success{% elif book.stock_status == 'low_stock' %}bg-warning text-dark{% else %}bg-danger{% endif %}">{{ book.quantity }}</span></td>
+            <td><span class="badge {% if book.is_active %}bg-success{% else %}bg-secondary{% endif %}">{% if book.is_active %}Faol{% else %}Nofaol{% endif %}</span></td>
+            <td>
+              <a href="/admin/books/book/{{ book.pk }}/change/" class="btn btn-sm btn-outline-primary">Tahrirlash</a>
+              <a href="{{ book.get_absolute_url }}" class="btn btn-sm btn-outline-secondary" target="_blank">Ko'rish</a>
+            </td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

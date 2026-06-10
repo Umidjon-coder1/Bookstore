@@ -1,0 +1,185 @@
+{% load static %}
+<header class="site-navbar">
+
+  <!-- Top utility bar (desktop only) -->
+  <div class="navbar-top-bar d-none d-lg-block">
+    <div class="container d-flex justify-content-between">
+      <span><i class="fas fa-shipping-fast me-1"></i>35 000 so'mdan yuqori buyurtmalarga bepul yetkazib berish</span>
+      <div class="d-flex gap-3">
+        <a href="/api/docs/">API&nbsp;Hujjatlar</a>
+        <a href="/admin/">Admin</a>
+        {% if not user.is_authenticated %}<a href="{% url 'users:login' %}">Kirish</a>{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Main navbar row -->
+  <div class="container">
+    <div class="navbar-main">
+
+      <!-- Logo -->
+      <a href="{% url 'books:list' %}" class="navbar-logo" aria-label="Kitob do'kon bosh sahifasi">
+        <div class="navbar-logo-icon"><i class="fas fa-book-open"></i></div>
+        <div class="navbar-logo-text">
+          <span class="brand-name">Kitob Do'kon</span>
+          <span class="brand-tagline">Ko'proq&nbsp;O'qi</span>
+        </div>
+      </a>
+
+      <!-- Search bar (desktop) -->
+      <div class="navbar-search d-none d-lg-flex">
+        <form class="navbar-search-form w-100"
+              action="{% url 'books:search' %}" method="GET"
+              id="mainSearchForm" autocomplete="off">
+          <input class="navbar-search-input"
+                 type="search" name="q" id="mainSearchInput"
+                 placeholder="Kitob, muallif, ISBN qidiring…"
+                 value="{{ request.GET.q|default:'' }}"
+                 aria-label="Qidirish">
+          <button class="navbar-search-btn" type="submit" aria-label="Qidirish">
+            <i class="fas fa-search"></i>
+          </button>
+        </form>
+        <!-- Autocomplete -->
+        <div class="search-autocomplete" id="searchAutocomplete" role="listbox"></div>
+      </div>
+
+      <!-- Right-side actions -->
+      <div class="navbar-actions ms-auto">
+
+        <!-- Theme toggle -->
+        <button class="theme-toggle-btn" id="themeToggle" aria-label="Tungi rejimni yoqish/o'chirish">
+          <i class="fas fa-moon" id="themeIcon"></i>
+        </button>
+
+        {% if user.is_authenticated %}
+
+        <!-- Wishlist -->
+        <a href="{% url 'wishlist:wishlist' %}" class="nav-icon-btn d-none d-md-flex" title="Istaklar ro'yxati">
+          <i class="fas fa-heart"></i>
+        </a>
+
+        <!-- Cart -->
+        <a href="{% url 'cart:cart' %}" class="nav-icon-btn" title="Savat" id="cartNavBtn">
+          <i class="fas fa-shopping-cart"></i>
+          <span class="nav-badge {% if not cart_count or cart_count == 0 %}hidden{% endif %}"
+                id="cartCount">{{ cart_count|default:0 }}</span>
+        </a>
+
+        <!-- User menu -->
+        <div class="user-dropdown dropdown">
+          <button class="dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            {% if user.avatar %}
+              <img src="{{ user.avatar.url }}" class="user-avatar" alt="{{ user.get_full_name }}">
+            {% else %}
+              <div class="user-avatar-placeholder"><i class="fas fa-user"></i></div>
+            {% endif %}
+            <div class="d-none d-xl-block text-start" style="line-height:1.15">
+              <div style="font-size:.62rem;color:rgba(255,255,255,.55)">Salom,</div>
+              <div style="font-size:.82rem;font-weight:700">{{ user.first_name|default:user.username|truncatechars:13 }}</div>
+            </div>
+            <i class="fas fa-caret-down d-none d-xl-block" style="font-size:.6rem;color:rgba(255,255,255,.45)"></i>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li>
+              <div class="user-info-header">
+                <div class="user-info-name">{{ user.get_full_name|default:user.username }}</div>
+                <div class="user-info-email">{{ user.email }}</div>
+              </div>
+            </li>
+            <li><a class="dropdown-item" href="{% url 'users:profile' %}"><i class="fas fa-user-circle"></i>Mening profilim</a></li>
+            <li><a class="dropdown-item" href="{% url 'orders:list' %}"><i class="fas fa-box-open"></i>Buyurtmalarim</a></li>
+            <li><a class="dropdown-item" href="{% url 'wishlist:wishlist' %}"><i class="fas fa-heart"></i>Istaklar ro'yxati</a></li>
+            {% if user.is_super_admin or user.is_store_manager %}
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="{% url 'analytics:dashboard' %}" style="color:var(--c-primary)"><i class="fas fa-chart-bar"></i>Boshqaruv paneli</a></li>
+            <li><a class="dropdown-item" href="/admin/"><i class="fas fa-cog"></i>Admin panel</a></li>
+            {% endif %}
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <form method="post" action="{% url 'users:logout' %}">
+                {% csrf_token %}
+                <button class="dropdown-item text-danger" type="submit"><i class="fas fa-sign-out-alt"></i>Chiqish</button>
+              </form>
+            </li>
+          </ul>
+        </div>
+
+        {% else %}
+
+        <!-- Guest: Cart -->
+        <a href="{% url 'cart:cart' %}" class="nav-icon-btn" title="Savat">
+          <i class="fas fa-shopping-cart"></i>
+          <span class="nav-badge hidden" id="cartCount">0</span>
+        </a>
+
+        <!-- Sign in -->
+        <a href="{% url 'users:login' %}" class="nav-icon-btn d-none d-sm-flex">
+          <i class="fas fa-user"></i>
+          <span class="d-none d-xl-inline ms-1" style="font-size:.82rem;font-weight:700">Kirish</span>
+        </a>
+
+        <!-- Register -->
+        <a href="{% url 'users:register' %}"
+           class="nav-icon-btn d-none d-sm-flex"
+           style="background:var(--nav-accent);color:var(--nav-bg);border-color:var(--nav-accent)">
+          <i class="fas fa-user-plus"></i>
+          <span class="d-none d-xl-inline ms-1" style="font-size:.82rem;font-weight:700">Ro'yxatdan o'tish</span>
+        </a>
+        {% endif %}
+
+        <!-- Mobile hamburger -->
+        <button class="navbar-mobile-toggle ms-1" id="mobileMenuToggle" aria-label="Menyu">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div><!-- /navbar-actions -->
+    </div><!-- /navbar-main -->
+
+    <!-- Mobile collapse -->
+    <div class="navbar-collapse-mobile" id="mobileMenu">
+      <!-- Mobile search -->
+      <form class="navbar-search-form mb-3"
+            action="{% url 'books:search' %}" method="GET">
+        <input class="navbar-search-input" type="search" name="q"
+               placeholder="Kitob qidiring…" value="{{ request.GET.q|default:'' }}">
+        <button class="navbar-search-btn" type="submit"><i class="fas fa-search"></i></button>
+      </form>
+      <!-- Mobile links -->
+      <div class="d-flex flex-column gap-1">
+        <a href="{% url 'books:list' %}" class="cat-nav-link"><i class="fas fa-th-large"></i>Barcha kitoblar</a>
+        {% if user.is_authenticated %}
+        <a href="{% url 'users:profile' %}"   class="cat-nav-link"><i class="fas fa-user-circle"></i>Mening profilim</a>
+        <a href="{% url 'orders:list' %}"     class="cat-nav-link"><i class="fas fa-box-open"></i>Buyurtmalarim</a>
+        <a href="{% url 'wishlist:wishlist' %}" class="cat-nav-link"><i class="fas fa-heart"></i>Istaklar ro'yxati</a>
+        <a href="{% url 'cart:cart' %}"       class="cat-nav-link"><i class="fas fa-shopping-cart"></i>Savat</a>
+        {% if user.is_super_admin or user.is_store_manager %}
+        <a href="{% url 'analytics:dashboard' %}" class="cat-nav-link" style="color:var(--nav-accent)"><i class="fas fa-chart-bar"></i>Boshqaruv paneli</a>
+        {% endif %}
+        <hr style="border-color:rgba(255,255,255,.1);margin:4px 0">
+        <form method="post" action="{% url 'users:logout' %}">{% csrf_token %}
+          <button type="submit" class="cat-nav-link w-100 text-start border-0" style="background:none;color:#f87171">
+            <i class="fas fa-sign-out-alt"></i>Chiqish
+          </button>
+        </form>
+        {% else %}
+        <a href="{% url 'users:login' %}"    class="cat-nav-link"><i class="fas fa-sign-in-alt"></i>Kirish</a>
+        <a href="{% url 'users:register' %}" class="cat-nav-link" style="color:var(--nav-accent)"><i class="fas fa-user-plus"></i>Ro'yxatdan o'tish</a>
+        {% endif %}
+      </div>
+    </div>
+  </div><!-- /container -->
+
+  <!-- Category strip -->
+  <nav class="navbar-categories" aria-label="Kategoriyalar">
+    <div class="container">
+      <a href="{% url 'books:list' %}" class="cat-nav-link {% if request.path == '/' %}active{% endif %}">
+        <i class="fas fa-th-large"></i>Barcha&nbsp;kitoblar
+      </a>
+      {% for cat in nav_categories %}
+      <a href="{% url 'books:list' %}?category={{ cat.slug }}" class="cat-nav-link">{{ cat.name }}</a>
+      {% endfor %}
+      <a href="{% url 'books:list' %}?on_sale=true"         class="cat-nav-link" style="color:#fca5a5"><i class="fas fa-tag"></i>Chegirmalar</a>
+      <a href="{% url 'books:list' %}?ordering=-rating"     class="cat-nav-link" style="color:var(--nav-accent)"><i class="fas fa-star"></i>Eng&nbsp;yaxshilari</a>
+    </div>
+  </nav>
+</header>

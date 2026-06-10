@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% block title %}Profil — Kitob Do'kon{% endblock %}
+{% block content %}
+<div class="container py-5">
+  <div class="row g-4">
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm text-center p-4">
+        {% if user.avatar %}
+          <img src="{{ user.avatar.url }}" class="rounded-circle mx-auto mb-3" width="100" height="100" style="object-fit:cover">
+        {% else %}
+          <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center mx-auto mb-3" style="width:100px;height:100px">
+            <i class="fas fa-user text-white fs-2"></i>
+          </div>
+        {% endif %}
+        <h5 class="fw-bold mb-1">{{ user.get_full_name }}</h5>
+        <span class="badge bg-{% if user.is_super_admin %}danger{% elif user.is_store_manager %}warning{% else %}primary{% endif %}">{{ user.get_role_display }}</span>
+        <p class="text-muted small mt-2">{{ user.email }}</p>
+        {% if user.email_verified %}<span class="badge bg-success small"><i class="fas fa-check-circle me-1"></i>Tasdiqlangan</span>{% endif %}
+        <hr>
+        <div class="d-grid gap-2">
+          <a href="{% url 'orders:list' %}" class="btn btn-outline-primary btn-sm"><i class="fas fa-box me-1"></i>Buyurtmalarim</a>
+          <a href="{% url 'wishlist:wishlist' %}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-heart me-1"></i>Istaklar ro'yxati</a>
+          <a href="{% url 'users:change-password' %}" class="btn btn-outline-warning btn-sm"><i class="fas fa-key me-1"></i>Parolni o'zgartirish</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-9">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-transparent border-0 pt-4 px-4">
+          <h4 class="fw-bold"><i class="fas fa-edit me-2 text-primary"></i>Profilni tahrirlash</h4>
+        </div>
+        <div class="card-body p-4">
+          <form method="post" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Ism</label>
+                {{ form.first_name }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Familiya</label>
+                {{ form.last_name }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Telefon</label>
+                {{ form.phone }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Tug'ilgan sana</label>
+                {{ form.date_of_birth }}
+              </div>
+              <div class="col-12">
+                <label class="form-label fw-semibold">Manzil</label>
+                {{ form.address }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Shahar</label>
+                {{ form.city }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Mamlakat</label>
+                {{ form.country }}
+              </div>
+              <div class="col-12">
+                <label class="form-label fw-semibold">O'zingiz haqingizda</label>
+                {{ form.bio }}
+              </div>
+              <div class="col-12">
+                <label class="form-label fw-semibold">Avatar</label>
+                {{ form.avatar }}
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary mt-4 px-5"><i class="fas fa-save me-2"></i>Saqlash</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

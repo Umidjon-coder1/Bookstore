@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+{% block title %}Savat — Kitob Do'kon{% endblock %}
+{% block content %}
+<div class="container page-fade-in">
+
+  <nav class="page-breadcrumb" aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'books:list' %}"><i class="fas fa-home"></i></a></li>
+      <li class="breadcrumb-item active">Savat</li>
+    </ol>
+  </nav>
+
+  <h1 style="font-size:1.5rem;font-weight:800;margin-bottom:24px;color:var(--t-primary)">
+    <i class="fas fa-shopping-cart me-2" style="color:var(--c-primary)"></i>Savat
+    {% if cart.items.all %}<span style="font-size:.9rem;font-weight:400;color:var(--t-muted)">({{ cart.items.count }} ta mahsulot)</span>{% endif %}
+  </h1>
+
+  <div id="cartContent">
+  {% if cart.items.all %}
+  <div class="row g-4">
+
+    <!-- Mahsulotlar -->
+    <div class="col-lg-8">
+      {% for item in cart.items.all %}
+      <div class="cart-item" id="cart-row-{{ item.pk }}">
+        <div class="cart-item-img">
+          {% if item.book.cover_image %}
+          <img src="{{ item.book.cover_image.url }}" alt="{{ item.book.title }}" loading="lazy">
+          {% else %}
+          <div class="book-cover-placeholder" style="height:100%"><i class="fas fa-book" style="font-size:1.2rem"></i></div>
+          {% endif %}
+        </div>
+        <div style="flex:1;min-width:0">
+          <a href="{{ item.book.get_absolute_url }}" style="font-size:.92rem;font-weight:700;color:var(--t-primary);text-decoration:none;display:block;margin-bottom:3px">{{ item.book.title|truncatechars:60 }}</a>
+          <p style="font-size:.76rem;color:var(--t-muted);margin-bottom:10px">{{ item.book.author.name|default:"Noma'lum" }}</p>
+
+          {% if item.book.stock_status == 'in_stock' %}
+          <span class="stock-badge stock-in" style="font-size:.7rem;padding:3px 9px"><i class="fas fa-check-circle"></i>Mavjud</span>
+          {% endif %}
+        </div>
+        <div class="d-flex flex-column align-items-end gap-2">
+          <!-- Narx -->
+          <div style="font-size:1rem;font-weight:800;color:var(--c-primary)">{{ item.total_price }} so'm</div>
+          <div style="font-size:.74rem;color:var(--t-muted)">{{ item.book.final_price }} so'm / dona</div>
+
+          <!-- Miqdor -->
+          <div class="qty-stepper">
+            <button type="button" class="qty-btn cart-qty-btn" data-item="{{ item.pk }}" data-action="dec">−</button>
+            <input type="number" class="qty-input cart-qty-input" data-item="{{ item.pk }}"
+                   value="{{ item.quantity }}" min="1" max="99">
+            <button type="button" class="qty-btn cart-qty-btn" data-item="{{ item.pk }}" data-action="inc">+</button>
+          </div>
+
+          <!-- O'chirish -->
+          <button type="button" class="cart-remove-btn" data-item="{{ item.pk }}"
+                  style="background:none;border:none;color:var(--c-danger);font-size:.76rem;cursor:pointer;padding:0;font-weight:600">
+            <i class="fas fa-trash-alt me-1"></i>O'chirish
+          </button>
+        </div>
+      </div>
+      {% endfor %}
+
+      <a href="{% url 'books:list' %}" style="font-size:.84rem;color:var(--c-primary);font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:6px;margin-top:4px">
+        <i class="fas fa-arrow-left"></i>Xaridni davom ettirish
+      </a>
+    </div>
+
+    <!-- Umumiy hisob -->
+    <div class="col-lg-4">
+      <div class="cart-summary-card">
+        <h5 style="font-weight:800;margin-bottom:16px;font-size:.98rem">Buyurtma xulosasi</h5>
+
+        <div class="cart-summary-row">
+          <span style="color:var(--t-secondary)">Jami narx</span>
+          <span style="font-weight:600" id="cartSubtotal">{{ cart.subtotal }} so'm</span>
+        </div>
+        <div class="cart-summary-row">
+          <span style="color:var(--t-secondary)">Yetkazib berish</span>
+          <span style="color:var(--c-success);font-weight:600">
+            {% if cart.subtotal >= 35000 %}Bepul{% else %}5 000 so'm{% endif %}
+          </span>
+        </div>
+        <div class="cart-summary-row" style="border-bottom:none;padding-top:12px">
+          <span style="font-weight:800;font-size:1rem">Jami</span>
+          <span style="font-weight:900;font-size:1.1rem;color:var(--c-primary)" id="cartTotal">
+            {{ cart.subtotal }} so'm
+          </span>
+        </div>
+
+        <!-- Kupon -->
+        <form id="couponForm" class="mt-4 mb-4">
+          <label style="font-size:.76rem;font-weight:600;color:var(--t-muted);display:block;margin-bottom:6px">Kupon kodingiz bormi?</label>
+          <div style="display:flex;gap:6px">
+            <input type="text" id="couponInput" class="form-control"
+                   placeholder="Kodni kiriting" style="font-size:.82rem;padding:7px 11px">
+            <button type="submit" class="filter-apply-btn" style="width:auto;padding:7px 14px;flex-shrink:0;font-size:.78rem">Qo'llash</button>
+          </div>
+        </form>
+
+        {% if user.is_authenticated %}
+        <a href="{% url 'orders:checkout' %}" class="btn-add-cart w-100 justify-content-center" style="background:var(--c-primary);color:#fff">
+          <i class="fas fa-lock me-2"></i>Rasmiylashtirish
+        </a>
+        {% else %}
+        <a href="{% url 'users:login' %}?next={% url 'orders:checkout' %}" class="btn-add-cart w-100 justify-content-center" style="background:var(--c-primary);color:#fff">
+          <i class="fas fa-sign-in-alt me-2"></i>Kirish va rasmiylashtirish
+        </a>
+        {% endif %}
+
+        <div style="text-align:center;margin-top:12px;font-size:.74rem;color:var(--t-muted)">
+          <i class="fas fa-shield-alt me-1" style="color:var(--c-success)"></i>Xavfsiz SSL to'lov
+        </div>
+      </div>
+    </div>
+
+  </div>
+  {% else %}
+  <div class="text-center py-5" style="padding:60px 0 !important">
+    <div style="font-size:5rem;opacity:.2;margin-bottom:20px">🛒</div>
+    <h3 style="font-weight:700;color:var(--t-secondary);margin-bottom:8px">Savatingiz bo'sh</h3>
+    <p style="color:var(--t-muted);margin-bottom:24px">Minglab ajoyib kitoblarni kashf eting va savatga qo'shing.</p>
+    <a href="{% url 'books:list' %}" class="btn-add-cart" style="background:var(--c-primary);color:#fff">
+      <i class="fas fa-book-open me-2"></i>Kitoblarga qarang
+    </a>
+  </div>
+  {% endif %}
+  </div><!-- /cartContent -->
+
+</div>
+{% endblock %}

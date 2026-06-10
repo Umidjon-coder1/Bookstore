@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block title %}Kirish — Kitob Do'kon{% endblock %}
+{% block content %}
+<div class="auth-wrap">
+  <div class="auth-card">
+
+    <div class="auth-logo">
+      <div class="auth-logo-icon"><i class="fas fa-book-open"></i></div>
+      <h1 class="auth-title">Xush kelibsiz!</h1>
+      <p class="auth-subtitle">Kitob Do'kon hisobingizga kiring</p>
+    </div>
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      <div class="form-group">
+        <label class="form-label" for="id_username">Elektron pochta</label>
+        <div class="input-icon-wrap">
+          <i class="input-icon fas fa-envelope"></i>
+          {{ form.username }}
+        </div>
+        {% if form.username.errors %}<span class="form-error">{{ form.username.errors|join:" " }}</span>{% endif %}
+      </div>
+
+      <div class="form-group">
+        <div class="d-flex justify-content-between align-items-center mb-1">
+          <label class="form-label mb-0" for="id_password">Parol</label>
+          <a href="{% url 'users:password_reset' %}" style="font-size:.76rem;color:var(--c-primary);text-decoration:none;font-weight:600">Parolni unutdingizmi?</a>
+        </div>
+        <div class="input-icon-wrap">
+          <i class="input-icon fas fa-lock"></i>
+          {{ form.password }}
+          <button type="button" class="input-toggle" id="pwdToggle" aria-label="Parolni ko'rish">
+            <i class="fas fa-eye" id="pwdIcon"></i>
+          </button>
+        </div>
+        {% if form.password.errors %}<span class="form-error">{{ form.password.errors|join:" " }}</span>{% endif %}
+      </div>
+
+      {% if form.non_field_errors %}
+      <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:var(--r-xs);padding:10px 14px;font-size:.84rem;color:var(--c-danger);margin-bottom:16px">
+        <i class="fas fa-exclamation-circle me-2"></i>{{ form.non_field_errors|join:" " }}
+      </div>
+      {% endif %}
+
+      <button type="submit" class="btn-auth mt-2">
+        <i class="fas fa-sign-in-alt me-2"></i>Kirish
+      </button>
+    </form>
+
+    <div class="auth-footer">
+      Hisobingiz yo'qmi? <a href="{% url 'users:register' %}">Ro'yxatdan o'ting</a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+document.getElementById('pwdToggle').addEventListener('click', function() {
+  const f = document.querySelector('input[name="password"]');
+  const i = document.getElementById('pwdIcon');
+  if (f.type === 'password') { f.type = 'text';     i.className = 'fas fa-eye-slash'; }
+  else                       { f.type = 'password'; i.className = 'fas fa-eye'; }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,318 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{{ book.title }} — Kitob Do'kon{% endblock %}
+
+{% block content %}
+<div class="container page-fade-in">
+
+  <!-- Breadcrumb -->
+  <nav class="page-breadcrumb" aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'books:list' %}"><i class="fas fa-home"></i></a></li>
+      {% if book.category %}<li class="breadcrumb-item"><a href="{% url 'books:list' %}?category={{ book.category.slug }}">{{ book.category.name }}</a></li>{% endif %}
+      <li class="breadcrumb-item active">{{ book.title|truncatechars:40 }}</li>
+    </ol>
+  </nav>
+
+  <div class="row g-4 g-lg-5">
+
+    <!-- ══ CHAP: Muqova + galereya ══════════════════════ -->
+    <div class="col-md-4 col-lg-4">
+      <div class="detail-cover-card">
+        {% if book.cover_image %}
+        <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" id="mainBookImage"
+             onerror="this.style.display='none'">
+        {% else %}
+        <div class="book-cover-placeholder" style="height:380px">
+          <i class="fas fa-book" style="font-size:3rem"></i>
+          <span>Muqova yo'q</span>
+        </div>
+        {% endif %}
+
+        {% if images %}
+        <div class="gallery-thumbs">
+          {% for img in images %}
+          <div class="gallery-thumb {% if forloop.first %}active{% endif %}" data-src="{{ img.image.url }}">
+            <img src="{{ img.image.url }}" alt="{{ img.alt_text }}" loading="lazy">
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Ulashish -->
+      <div class="d-flex gap-2 mt-3 justify-content-center">
+        <span style="font-size:.76rem;color:var(--t-muted);align-self:center">Ulashish:</span>
+        <a href="#" class="social-link" style="background:rgba(0,0,0,.06);border-color:var(--border);color:var(--t-muted)" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+        <a href="#" class="social-link" style="background:rgba(0,0,0,.06);border-color:var(--border);color:var(--t-muted)" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+        <a href="#" class="social-link" style="background:rgba(0,0,0,.06);border-color:var(--border);color:var(--t-muted)" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+      </div>
+    </div>
+
+    <!-- ══ O'RTA: Ma'lumot ═══════════════════════════════ -->
+    <div class="col-md-8 col-lg-5">
+      <div class="book-info-card">
+        {% if book.category %}
+        <a href="{% url 'books:list' %}?category={{ book.category.slug }}" class="book-category-tag mb-2 d-inline-block">{{ book.category.name }}</a>
+        {% endif %}
+
+        <h1 style="font-size:1.55rem;font-weight:800;line-height:1.2;margin:10px 0 6px;color:var(--t-primary)">{{ book.title }}</h1>
+        <p style="font-size:.95rem;color:var(--t-secondary);margin-bottom:10px">
+          Muallif: <a href="#" style="color:var(--c-primary);font-weight:700;text-decoration:none">{{ book.author.name|default:"Noma'lum muallif" }}</a>
+        </p>
+
+        <!-- Yulduzlar -->
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <div class="stars-display">
+            {% for i in "12345" %}
+            <i class="fas fa-star star {% if book.rating >= forloop.counter %}filled{% endif %}" style="font-size:.9rem"></i>
+            {% endfor %}
+          </div>
+          <span style="font-size:.84rem;font-weight:700;color:var(--c-accent)">{{ book.rating|floatformat:1 }}</span>
+          <a href="#reviewsTab" style="font-size:.8rem;color:var(--t-muted)">{{ book.reviews_count }} ta sharh</a>
+        </div>
+
+        <!-- Narx -->
+        <div class="mb-3">
+          {% if book.is_on_sale %}
+          <span class="detail-price-original me-2">{{ book.price }} so'm</span>
+          <span class="detail-price-big">{{ book.discount_price }} so'm</span>
+          <span class="price-save ms-2">{{ book.discount_percentage }}% tejash</span>
+          {% else %}
+          <span class="detail-price-big" style="color:var(--c-primary)">{{ book.price }} so'm</span>
+          {% endif %}
+        </div>
+
+        <!-- Ombor holati -->
+        <div class="mb-4">
+          {% if book.stock_status == 'in_stock' %}
+          <span class="stock-badge stock-in"><i class="fas fa-check-circle"></i>Mavjud ({{ book.quantity }} ta qoldi)</span>
+          {% elif book.stock_status == 'low_stock' %}
+          <span class="stock-badge stock-low"><i class="fas fa-exclamation-triangle"></i>Faqat {{ book.quantity }} ta qoldi!</span>
+          {% else %}
+          <span class="stock-badge stock-out"><i class="fas fa-times-circle"></i>Tugagan</span>
+          {% endif %}
+        </div>
+
+        <!-- Kitob ma'lumotlari -->
+        <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm);padding:14px;margin-bottom:16px">
+          <div class="row g-2" style="font-size:.8rem">
+            {% if book.isbn %}<div class="col-6"><span style="color:var(--t-muted)">ISBN:</span> <strong>{{ book.isbn }}</strong></div>{% endif %}
+            {% if book.publisher %}<div class="col-6"><span style="color:var(--t-muted)">Nashriyot:</span> <strong>{{ book.publisher.name }}</strong></div>{% endif %}
+            <div class="col-6"><span style="color:var(--t-muted)">Til:</span> <strong>{{ book.language|default:"O'zbek" }}</strong></div>
+            {% if book.publication_date %}<div class="col-6"><span style="color:var(--t-muted)">Nashr yili:</span> <strong>{{ book.publication_date|date:"Y" }}</strong></div>{% endif %}
+          </div>
+        </div>
+
+        <!-- Qisqa tavsif -->
+        {% if book.description %}
+        <p class="truncate-3 mb-0" style="font-size:.875rem;color:var(--t-secondary);line-height:1.65">{{ book.description }}</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- ══ O'NG: Xarid qutisi ═════════════════════════════ -->
+    <div class="col-lg-3">
+      <div class="cart-summary-card">
+        <div class="mb-3">
+          {% if book.is_on_sale %}
+          <div class="detail-price-big">{{ book.discount_price }} so'm</div>
+          <div class="detail-price-original">{{ book.price }} so'm <span class="price-save ms-1">{{ book.discount_percentage }}% chegirma</span></div>
+          {% else %}
+          <div class="detail-price-big" style="color:var(--c-primary)">{{ book.price }} so'm</div>
+          {% endif %}
+        </div>
+
+        {% if book.stock_status != 'out_of_stock' %}
+        <form method="post" action="{% url 'cart:add' book.pk %}" class="add-to-cart-ajax">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label style="font-size:.76rem;font-weight:600;color:var(--t-muted);display:block;margin-bottom:6px">Miqdor</label>
+            <div class="qty-stepper">
+              <button type="button" class="qty-btn" id="qtyMinus">−</button>
+              <input type="number" class="qty-input" name="quantity" id="detailQty"
+                     value="1" min="1" max="{{ book.quantity }}" data-max="{{ book.quantity }}">
+              <button type="button" class="qty-btn" id="qtyPlus">+</button>
+            </div>
+          </div>
+          <button type="submit" class="btn-add-cart w-100 justify-content-center mb-2">
+            <i class="fas fa-cart-plus"></i>Savatga qo'shish
+          </button>
+        </form>
+        <a href="{% url 'orders:checkout' %}" class="btn-buy-now w-100 justify-content-center">
+          <i class="fas fa-bolt"></i>Hozir sotib olish
+        </a>
+        {% else %}
+        <button class="btn-add-cart w-100 justify-content-center" disabled style="opacity:.5;cursor:not-allowed">
+          <i class="fas fa-times-circle"></i>Tugagan
+        </button>
+        {% endif %}
+
+        {% if user.is_authenticated %}
+        <form method="post" action="{% url 'wishlist:toggle' book.pk %}" class="wishlist-form-ajax mt-2">
+          {% csrf_token %}
+          <button type="submit" class="w-100" style="background:transparent;border:1px solid var(--border);border-radius:var(--r-xs);padding:9px;font-size:.84rem;cursor:pointer;color:var(--t-secondary);font-family:inherit;transition:all var(--t-fast)">
+            <i class="fas fa-heart me-2" style="color:var(--c-danger)"></i>Istaklar ro'yxatiga qo'shish
+          </button>
+        </form>
+        {% else %}
+        <a href="{% url 'users:login' %}" class="d-block text-center mt-2" style="font-size:.8rem;color:var(--c-primary)">Istaklar ro'yxatiga qo'shish uchun kiring</a>
+        {% endif %}
+
+        <!-- Ishonch belgilari -->
+        <div style="border-top:1px solid var(--border-light);margin-top:16px;padding-top:14px">
+          <div style="display:flex;align-items:center;gap:8px;font-size:.76rem;color:var(--t-muted);margin-bottom:6px"><i class="fas fa-shield-alt" style="color:var(--c-success)"></i>Xavfsiz to'lov</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:.76rem;color:var(--t-muted);margin-bottom:6px"><i class="fas fa-undo" style="color:var(--c-primary)"></i>30 kunlik qaytarish</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:.76rem;color:var(--t-muted)"><i class="fas fa-truck" style="color:var(--c-accent)"></i>35 000 so'mdan bepul yetkazib berish</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /row -->
+
+  <!-- ══ TABLAR: Tavsif + Sharhlar ════════════════════════ -->
+  <div class="mt-5">
+    <ul class="nav nav-tabs border-0 gap-1 mb-0" id="bookTabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active fw-600 border" style="border-radius:var(--r-sm) var(--r-sm) 0 0;font-size:.875rem"
+                data-bs-toggle="tab" data-bs-target="#tabDesc" type="button" role="tab">
+          Tavsif
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link fw-600 border" style="border-radius:var(--r-sm) var(--r-sm) 0 0;font-size:.875rem"
+                data-bs-toggle="tab" data-bs-target="#tabReviews" type="button" role="tab" id="reviewsTab">
+          Sharhlar <span class="badge bg-secondary ms-1" style="font-size:.7rem">{{ book.reviews_count }}</span>
+        </button>
+      </li>
+    </ul>
+
+    <div class="tab-content" style="background:var(--surface);border:1px solid var(--border);border-top:none;border-radius:0 var(--r-sm) var(--r-sm) var(--r-sm);padding:28px">
+
+      <!-- Tavsif tab -->
+      <div class="tab-pane fade show active" id="tabDesc" role="tabpanel">
+        <div style="font-size:.9rem;line-height:1.8;color:var(--t-secondary)">
+          {{ book.description|linebreaks|default:"Tavsif mavjud emas." }}
+        </div>
+      </div>
+
+      <!-- Sharhlar tab -->
+      <div class="tab-pane fade" id="tabReviews" role="tabpanel">
+
+        {% for review in reviews %}
+        <div class="review-card">
+          <div class="d-flex align-items-start gap-3">
+            <div class="reviewer-avatar">
+              {{ review.user.first_name|first|default:review.user.email|first|upper }}
+            </div>
+            <div style="flex:1;min-width:0">
+              <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <div>
+                  <strong style="font-size:.88rem">{{ review.user.get_full_name|default:review.user.email }}</strong>
+                  <div class="stars-display mt-1">
+                    {% for i in "12345" %}<i class="fas fa-star star {% if review.rating >= forloop.counter %}filled{% endif %}"></i>{% endfor %}
+                  </div>
+                </div>
+                <span style="font-size:.74rem;color:var(--t-muted)">{{ review.created_at|date:"j M, Y" }}</span>
+              </div>
+              {% if review.title %}<p style="font-weight:700;font-size:.88rem;margin:8px 0 4px">{{ review.title }}</p>{% endif %}
+              <p style="font-size:.875rem;color:var(--t-secondary);margin:8px 0 0;line-height:1.65">{{ review.body }}</p>
+              {% if user == review.user %}
+              <form method="post" action="{% url 'reviews:delete' review.pk %}" class="mt-2">
+                {% csrf_token %}
+                <button type="submit" style="background:none;border:none;color:var(--c-danger);font-size:.76rem;cursor:pointer;padding:0">
+                  <i class="fas fa-trash-alt me-1"></i>O'chirish
+                </button>
+              </form>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-4" style="color:var(--t-muted)">
+          <i class="fas fa-star fa-2x mb-3" style="opacity:.3"></i>
+          <p>Hali sharh yo'q. Birinchi sharh qoldiring!</p>
+        </div>
+        {% endfor %}
+
+        <!-- Sharh yozish formasi -->
+        {% if user.is_authenticated %}
+        <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r);padding:24px;margin-top:20px">
+          <h5 style="font-weight:800;margin-bottom:18px;font-size:1rem">Sharh yozish</h5>
+          <form method="post" action="{% url 'reviews:add' book.slug %}">
+            {% csrf_token %}
+            <input type="hidden" name="rating" id="ratingValue" value="5">
+            <div class="form-group">
+              <label class="form-label">Baholash</label>
+              <div class="star-rating-input" id="starRatingInput">
+                {% for i in "12345" %}
+                <button type="button" class="star-btn {% if forloop.counter <= 5 %}active{% endif %}"
+                        data-value="{{ forloop.counter }}">
+                  <i class="fas fa-star"></i>
+                </button>
+                {% endfor %}
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Sarlavha <span style="color:var(--t-muted);font-weight:400">(ixtiyoriy)</span></label>
+              <input type="text" class="form-control" name="title" placeholder="Sharhingizni qisqacha ifodalang">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Sharh <span style="color:var(--c-danger)">*</span></label>
+              <textarea class="form-control" name="body" rows="4" placeholder="Bu kitob haqida fikrlaringizni baham ko'ring…" required></textarea>
+            </div>
+            <button type="submit" class="btn-auth mt-2" style="width:auto;padding:10px 28px">
+              <i class="fas fa-paper-plane me-2"></i>Sharh yuborish
+            </button>
+          </form>
+        </div>
+        {% else %}
+        <div class="text-center py-3" style="color:var(--t-muted);font-size:.875rem">
+          Sharh qoldirish uchun <a href="{% url 'users:login' %}?next={{ request.path }}" style="font-weight:600">kiring</a>.
+        </div>
+        {% endif %}
+
+      </div><!-- /sharhlar tab -->
+    </div><!-- /tab-content -->
+  </div>
+
+  <!-- O'xshash kitoblar -->
+  {% if related_books %}
+  <div class="mt-5">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <h3 style="font-weight:800;font-size:1.2rem;color:var(--t-primary);margin:0;display:flex;align-items:center;gap:8px">
+        <span style="width:4px;height:20px;background:var(--c-primary);border-radius:99px;display:inline-block"></span>
+        Sizga ham yoqishi mumkin
+      </h3>
+      <a href="{% url 'books:list' %}?category={{ book.category.slug }}" style="font-size:.8rem;color:var(--c-primary);font-weight:600;text-decoration:none">Hammasini ko'rish <i class="fas fa-arrow-right ms-1"></i></a>
+    </div>
+    <div class="row row-cols-2 row-cols-md-4 g-3">
+      {% for rb in related_books %}
+      <div class="col">
+        <article class="book-card">
+          <div class="book-cover-wrap">
+            {% if rb.cover_image %}
+            <img src="{{ rb.cover_image.url }}" alt="{{ rb.title }}" loading="lazy">
+            {% else %}
+            <div class="book-cover-placeholder"><i class="fas fa-book"></i></div>
+            {% endif %}
+            <div class="book-overlay">
+              <a href="{{ rb.get_absolute_url }}" class="btn-overlay btn-overlay-view"><i class="fas fa-eye"></i>Ko'rish</a>
+            </div>
+          </div>
+          <div class="book-card-body">
+            <a href="{{ rb.get_absolute_url }}" class="book-title">{{ rb.title|truncatechars:40 }}</a>
+            <span class="book-author">{{ rb.author.name|default:"Noma'lum" }}</span>
+            <div class="book-price-row">
+              <span class="price-regular">{{ rb.final_price }} so'm</span>
+            </div>
+          </div>
+        </article>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

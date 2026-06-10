@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block title %}Istaklar ro'yxati — Kitob Do'kon{% endblock %}
+{% block content %}
+<div class="container page-fade-in">
+  <nav class="page-breadcrumb" aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'books:list' %}"><i class="fas fa-home"></i></a></li>
+      <li class="breadcrumb-item active">Istaklar ro'yxati</li>
+    </ol>
+  </nav>
+
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <h1 style="font-size:1.5rem;font-weight:800;color:var(--t-primary);margin:0">
+      <i class="fas fa-heart me-2" style="color:var(--c-danger)"></i>Istaklar ro'yxatim
+    </h1>
+    {% if wishlist and wishlist.books.all %}
+    <span style="font-size:.84rem;color:var(--t-muted)">{{ wishlist.books.count }} ta kitob</span>
+    {% endif %}
+  </div>
+
+  {% if wishlist and wishlist.books.all %}
+  <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-xl-4 g-4">
+    {% for book in wishlist.books.all %}
+    <div class="col">
+      <article class="book-card">
+        <div class="book-cover-wrap">
+          {% if book.cover_image %}
+          <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" loading="lazy">
+          {% else %}
+          <div class="book-cover-placeholder"><i class="fas fa-book"></i><span>Muqova yo'q</span></div>
+          {% endif %}
+          {% if book.is_on_sale %}<span class="book-badge book-badge-sale">-{{ book.discount_percentage }}%</span>{% endif %}
+
+          <form method="post" action="{% url 'wishlist:toggle' book.pk %}" class="wishlist-form-ajax" style="display:contents">
+            {% csrf_token %}
+            <button type="submit" class="book-wishlist-btn active" title="Ro'yxatdan olib tashlash"><i class="fas fa-heart"></i></button>
+          </form>
+
+          <div class="book-overlay">
+            <a href="{{ book.get_absolute_url }}" class="btn-overlay btn-overlay-view"><i class="fas fa-eye"></i>Ko'rish</a>
+            {% if book.stock_status != 'out_of_stock' %}
+            <form method="post" action="{% url 'cart:add' book.pk %}" class="add-to-cart-ajax" style="display:contents">
+              {% csrf_token %}<input type="hidden" name="quantity" value="1">
+              <button type="submit" class="btn-overlay btn-overlay-cart"><i class="fas fa-cart-plus"></i>Qo'shish</button>
+            </form>
+            {% endif %}
+          </div>
+        </div>
+        <div class="book-card-body">
+          <a href="{{ book.get_absolute_url }}" class="book-title">{{ book.title }}</a>
+          <span class="book-author">{{ book.author.name|default:"Noma'lum" }}</span>
+          <div class="stars-display">
+            {% for i in "12345" %}<i class="fas fa-star star {% if book.rating >= forloop.counter %}filled{% endif %}"></i>{% endfor %}
+          </div>
+          <div class="book-price-row">
+            {% if book.is_on_sale %}<span class="price-original">{{ book.price }} so'm</span><span class="price-current">{{ book.discount_price }} so'm</span>
+            {% else %}<span class="price-regular">{{ book.price }} so'm</span>{% endif %}
+          </div>
+        </div>
+      </article>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="text-center" style="padding:60px 0">
+    <div style="font-size:5rem;opacity:.2;margin-bottom:20px">💝</div>
+    <h3 style="font-weight:700;color:var(--t-secondary);margin-bottom:8px">Istaklar ro'yxatingiz bo'sh</h3>
+    <p style="color:var(--t-muted);margin-bottom:24px">Kitoblarga qarang va ♥ belgisini bosib sevimlilaringizni saqlang.</p>
+    <a href="{% url 'books:list' %}" class="btn-add-cart" style="background:var(--c-primary);color:#fff">
+      <i class="fas fa-book-open me-2"></i>Kitoblarga qarang
+    </a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

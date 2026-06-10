@@ -1,0 +1,301 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Kitoblar — Kitob Do'kon{% endblock %}
+
+{% block content %}
+<div class="container page-fade-in">
+
+  <!-- Breadcrumb -->
+  <nav class="page-breadcrumb" aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'books:list' %}"><i class="fas fa-home"></i></a></li>
+      <li class="breadcrumb-item active">Kitoblar{% if request.GET.category %} / {{ request.GET.category|title }}{% endif %}</li>
+    </ol>
+  </nav>
+
+  <div class="row g-4">
+
+    <!-- ══ FILTR PANEL ══════════════════════════════ -->
+    <div class="col-xl-3 col-lg-3 d-none d-lg-block">
+      <div class="filter-panel">
+        <div class="filter-panel-header">
+          <h5><i class="fas fa-sliders-h" style="color:var(--c-primary)"></i>Filtrlar</h5>
+          <a href="{% url 'books:list' %}" class="filter-clear-btn">Hammasini tozalash</a>
+        </div>
+
+        <form method="GET" id="filterForm">
+          {% if request.GET.ordering %}<input type="hidden" name="ordering" value="{{ request.GET.ordering }}">{% endif %}
+
+          <!-- Kategoriya -->
+          <div class="filter-section" id="secCat">
+            <div class="filter-section-title" onclick="toggleSection('secCat')">
+              Kategoriya <i class="fas fa-chevron-down toggle-icon"></i>
+            </div>
+            <div class="filter-section-body">
+              {% for cat in categories %}
+              <a href="?category={{ cat.slug }}{% if request.GET.ordering %}&ordering={{ request.GET.ordering }}{% endif %}"
+                 class="cat-filter-item {% if request.GET.category == cat.slug %}active{% endif %}">
+                <i class="fas fa-folder{% if request.GET.category == cat.slug %}-open{% endif %}" style="font-size:.68rem;opacity:.7"></i>
+                {{ cat.name }}
+              </a>
+              {% for child in cat.children.all %}
+              <div class="cat-filter-child">
+                <a href="?category={{ child.slug }}{% if request.GET.ordering %}&ordering={{ request.GET.ordering }}{% endif %}"
+                   class="cat-filter-item {% if request.GET.category == child.slug %}active{% endif %}">
+                  <i class="fas fa-angle-right" style="font-size:.68rem;opacity:.5"></i>{{ child.name }}
+                </a>
+              </div>
+              {% endfor %}
+              {% endfor %}
+            </div>
+          </div>
+
+          <!-- Narx -->
+          <div class="filter-section" id="secPrice">
+            <div class="filter-section-title" onclick="toggleSection('secPrice')">
+              Narx oralig'i <i class="fas fa-chevron-down toggle-icon"></i>
+            </div>
+            <div class="filter-section-body">
+              <div class="price-range-inputs">
+                <input type="number" name="min_price" placeholder="0 so'm"   min="0" value="{{ request.GET.min_price }}">
+                <span class="price-range-sep">–</span>
+                <input type="number" name="max_price" placeholder="999 000 so'm" min="0" value="{{ request.GET.max_price }}">
+              </div>
+              <button type="submit" class="filter-apply-btn mt-3">Qo'llash</button>
+            </div>
+          </div>
+
+          <!-- Reyting -->
+          <div class="filter-section" id="secRating">
+            <div class="filter-section-title" onclick="toggleSection('secRating')">
+              Reyting <i class="fas fa-chevron-down toggle-icon"></i>
+            </div>
+            <div class="filter-section-body">
+              {% for val, label in rating_choices %}
+              <label class="rating-filter-option {% if request.GET.min_rating == val %}active{% endif %}">
+                <input type="radio" name="min_rating" value="{{ val }}"
+                       {% if request.GET.min_rating == val %}checked{% endif %}
+                       onchange="this.form.submit()">
+                <span style="display:flex;align-items:center;gap:3px">
+                  <i class="fas fa-star star filled"></i>
+                  <i class="fas fa-star star {% if val != '1' %}filled{% endif %}"></i>
+                  <i class="fas fa-star star {% if val == '3' or val == '4' %}filled{% endif %}"></i>
+                  <i class="fas fa-star star {% if val == '4' %}filled{% endif %}"></i>
+                  <i class="fas fa-star star"></i>
+                  <span style="font-size:.73rem;color:var(--t-muted);margin-left:4px">{{ val }}+ yulduz</span>
+                </span>
+              </label>
+              {% endfor %}
+              <label class="rating-filter-option {% if not request.GET.min_rating %}active{% endif %}">
+                <input type="radio" name="min_rating" value=""
+                       {% if not request.GET.min_rating %}checked{% endif %}
+                       onchange="this.form.submit()">
+                <span style="font-size:.82rem;color:var(--t-secondary)">Har qanday reyting</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Mavjudlik -->
+          <div class="filter-section" id="secAvail">
+            <div class="filter-section-title" onclick="toggleSection('secAvail')">
+              Mavjudlik <i class="fas fa-chevron-down toggle-icon"></i>
+            </div>
+            <div class="filter-section-body">
+              <div class="filter-toggle">
+                <label for="onSaleToggle">Chegirmada</label>
+                <input class="form-check-input" role="switch" type="checkbox"
+                       id="onSaleToggle" name="on_sale" value="true"
+                       {% if request.GET.on_sale == 'true' %}checked{% endif %}
+                       onchange="this.form.submit()">
+              </div>
+              <div class="filter-toggle mt-2">
+                <label for="inStockToggle">Faqat mavjud</label>
+                <input class="form-check-input" role="switch" type="checkbox"
+                       id="inStockToggle" name="in_stock" value="true"
+                       {% if request.GET.in_stock == 'true' %}checked{% endif %}
+                       onchange="this.form.submit()">
+              </div>
+            </div>
+          </div>
+
+        </form>
+      </div>
+    </div><!-- /sidebar -->
+
+    <!-- ══ KITOBLAR GRID ══════════════════════════════════ -->
+    <div class="col-xl-9 col-lg-9">
+
+      <!-- Faol filtr chiplari -->
+      {% if request.GET.category or request.GET.min_rating or request.GET.on_sale or request.GET.in_stock or request.GET.min_price or request.GET.max_price %}
+      <div class="active-filters">
+        <span style="font-size:.74rem;color:var(--t-muted);font-weight:600">Faol:</span>
+        {% if request.GET.category %}
+        <a href="?{% if request.GET.ordering %}ordering={{ request.GET.ordering }}{% endif %}" class="filter-chip">
+          {{ request.GET.category|title }}
+          <button class="filter-chip-close"><i class="fas fa-times"></i></button>
+        </a>{% endif %}
+        {% if request.GET.on_sale %}<span class="filter-chip">Chegirmada<button class="filter-chip-close" onclick="window.location='?'"><i class="fas fa-times"></i></button></span>{% endif %}
+        {% if request.GET.min_rating %}<span class="filter-chip">{{ request.GET.min_rating }}+ Yulduz</span>{% endif %}
+        {% if request.GET.min_price or request.GET.max_price %}<span class="filter-chip">{{ request.GET.min_price|default:0 }} so'm – {{ request.GET.max_price|default:'∞' }} so'm</span>{% endif %}
+      </div>
+      {% endif %}
+
+      <!-- Toolbar -->
+      <div class="books-toolbar">
+        <div class="d-flex align-items-center gap-2">
+          <i class="fas fa-book-open" style="color:var(--c-primary);font-size:.88rem"></i>
+          <span class="books-count"><strong>{{ total_count }}</strong> ta kitob</span>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <select class="sort-select" id="sortSelect" aria-label="Saralash">
+            <option value="-created_at" {% if ordering == '-created_at' %}selected{% endif %}>Eng yangi</option>
+            <option value="price"       {% if ordering == 'price'       %}selected{% endif %}>Narx: pastdan yuqoriga</option>
+            <option value="-price"      {% if ordering == '-price'      %}selected{% endif %}>Narx: yuqoridan pastga</option>
+            <option value="-rating"     {% if ordering == '-rating'     %}selected{% endif %}>Eng yaxshi baholangan</option>
+            <option value="title"       {% if ordering == 'title'       %}selected{% endif %}>A → Z</option>
+          </select>
+          <div class="view-toggle">
+            <button class="view-btn active" id="btnGrid" aria-label="Katakcha ko'rinish"><i class="fas fa-th"></i></button>
+            <button class="view-btn"        id="btnList" aria-label="Ro'yxat ko'rinish"><i class="fas fa-list"></i></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- GRID -->
+      <div id="gridView">
+        {% if books %}
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-xl-3 g-4">
+          {% for book in books %}
+          <div class="col">
+            <article class="book-card">
+              <div class="book-cover-wrap">
+                {% if book.cover_image %}
+                <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" loading="lazy"
+                     onerror="this.parentElement.innerHTML='<div class=\'book-cover-placeholder\'><i class=\'fas fa-book\'></i><span>Muqova yo\'q</span></div>'">
+                {% else %}
+                <div class="book-cover-placeholder"><i class="fas fa-book"></i><span>Muqova yo'q</span></div>
+                {% endif %}
+
+                {% if book.is_on_sale %}<span class="book-badge book-badge-sale">-{{ book.discount_percentage }}%</span>{% endif %}
+                {% if book.stock_status == 'out_of_stock' %}<span class="book-badge book-badge-out">Tugagan</span>{% endif %}
+
+                {% if user.is_authenticated %}
+                <form method="post" action="{% url 'wishlist:toggle' book.pk %}" class="wishlist-form-ajax" style="display:contents">
+                  {% csrf_token %}
+                  <button type="submit" class="book-wishlist-btn" title="Istaklar ro'yxati"><i class="fas fa-heart"></i></button>
+                </form>
+                {% endif %}
+
+                <div class="book-overlay">
+                  <a href="{{ book.get_absolute_url }}" class="btn-overlay btn-overlay-view"><i class="fas fa-eye"></i>Ko'rish</a>
+                  {% if book.stock_status != 'out_of_stock' %}
+                  <form method="post" action="{% url 'cart:add' book.pk %}" class="add-to-cart-ajax" style="display:contents">
+                    {% csrf_token %}<input type="hidden" name="quantity" value="1">
+                    <button type="submit" class="btn-overlay btn-overlay-cart"><i class="fas fa-cart-plus"></i>Qo'shish</button>
+                  </form>
+                  {% endif %}
+                </div>
+              </div>
+
+              <div class="book-card-body">
+                <a href="{% url 'books:list' %}?category={{ book.category.slug }}" class="book-category-tag">
+                  {{ book.category.name|default:"Umumiy" }}
+                </a>
+                <a href="{{ book.get_absolute_url }}" class="book-title">{{ book.title }}</a>
+                <a href="#" class="book-author">{{ book.author.name|default:"Noma'lum muallif" }}</a>
+                <div class="stars-display">
+                  {% for i in "12345" %}
+                  <i class="fas fa-star star {% if book.rating >= forloop.counter %}filled{% endif %}"></i>
+                  {% endfor %}
+                  <span class="stars-count">({{ book.reviews_count }})</span>
+                </div>
+                <div class="book-price-row">
+                  {% if book.is_on_sale %}
+                  <span class="price-original">{{ book.price }} so'm</span>
+                  <span class="price-current">{{ book.discount_price }} so'm</span>
+                  {% else %}
+                  <span class="price-regular">{{ book.price }} so'm</span>
+                  {% endif %}
+                </div>
+              </div>
+            </article>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+          <div style="font-size:4rem;opacity:.2;margin-bottom:16px">📚</div>
+          <h4 style="color:var(--t-secondary);font-weight:700">Kitoblar topilmadi</h4>
+          <p style="color:var(--t-muted)">Filtrlarni o'zgartirib ko'ring yoki barcha kitoblarga qarang.</p>
+          <a href="{% url 'books:list' %}" class="btn btn-primary px-4 mt-2">Filtrlarni tozalash</a>
+        </div>
+        {% endif %}
+      </div><!-- /gridView -->
+
+      <!-- LIST -->
+      <div id="listView" style="display:none">
+        {% for book in books %}
+        <article class="book-list-item">
+          <div class="book-list-cover">
+            {% if book.cover_image %}
+            <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" loading="lazy">
+            {% else %}
+            <div class="book-cover-placeholder" style="height:100%"><i class="fas fa-book" style="font-size:1.4rem"></i></div>
+            {% endif %}
+          </div>
+          <div style="flex:1;min-width:0">
+            <a href="{{ book.get_absolute_url }}" class="book-title d-block mb-1">{{ book.title }}</a>
+            <p style="font-size:.76rem;color:var(--t-muted);margin-bottom:6px">{{ book.author.name|default:"Noma'lum" }} &bull; {{ book.category.name|default:"Umumiy" }}</p>
+            <div class="stars-display mb-2">
+              {% for i in "12345" %}<i class="fas fa-star star {% if book.rating >= forloop.counter %}filled{% endif %}"></i>{% endfor %}
+              <span class="stars-count">({{ book.reviews_count }})</span>
+            </div>
+            <p class="truncate-2 mb-3" style="font-size:.81rem;color:var(--t-secondary)">{{ book.description|default:""|truncatechars:130 }}</p>
+            <div class="d-flex align-items-center gap-3 flex-wrap">
+              {% if book.is_on_sale %}
+              <span class="price-original">{{ book.price }} so'm</span>
+              <span class="price-current">{{ book.discount_price }} so'm</span>
+              {% else %}
+              <span class="price-regular">{{ book.price }} so'm</span>
+              {% endif %}
+              <a href="{{ book.get_absolute_url }}" class="btn btn-sm btn-outline-primary px-3">Batafsil</a>
+              {% if book.stock_status != 'out_of_stock' %}
+              <form method="post" action="{% url 'cart:add' book.pk %}" class="add-to-cart-ajax">
+                {% csrf_token %}<input type="hidden" name="quantity" value="1">
+                <button class="btn-add-cart" style="padding:7px 16px;font-size:.78rem"><i class="fas fa-cart-plus"></i>Savatga qo'shish</button>
+              </form>
+              {% endif %}
+            </div>
+          </div>
+        </article>
+        {% empty %}
+        <p style="color:var(--t-muted);text-align:center;padding:40px 0">Kitoblar topilmadi.</p>
+        {% endfor %}
+      </div><!-- /listView -->
+
+      <!-- Sahifalash -->
+      {% if books.has_other_pages %}
+      <div class="custom-pagination">
+        <a href="{% if books.has_previous %}?page={{ books.previous_page_number }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.ordering %}&ordering={{ request.GET.ordering }}{% endif %}{% else %}#{% endif %}"
+           class="page-link-btn {% if not books.has_previous %}disabled{% endif %}">
+          <i class="fas fa-chevron-left"></i>
+        </a>
+        {% for num in books.paginator.page_range %}
+          {% if books.number == num %}
+          <span class="page-link-btn active">{{ num }}</span>
+          {% elif num > books.number|add:'-3' and num < books.number|add:'3' %}
+          <a class="page-link-btn"
+             href="?page={{ num }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.ordering %}&ordering={{ request.GET.ordering }}{% endif %}">{{ num }}</a>
+          {% endif %}
+        {% endfor %}
+        <a href="{% if books.has_next %}?page={{ books.next_page_number }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.ordering %}&ordering={{ request.GET.ordering }}{% endif %}{% else %}#{% endif %}"
+           class="page-link-btn {% if not books.has_next %}disabled{% endif %}">
+          <i class="fas fa-chevron-right"></i>
+        </a>
+      </div>
+      {% endif %}
+
+    </div><!-- /col -->
+  </div><!-- /row -->
+</div>
+{% endblock %}

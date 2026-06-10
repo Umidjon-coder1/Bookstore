@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% block title %}Buyurtma {{ order.order_number }} — Kitob Do'kon{% endblock %}
+{% block content %}
+<div class="container py-5">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold">Buyurtma {{ order.order_number }}</h2>
+    <a href="{% url 'orders:list' %}" class="btn btn-outline-secondary">Buyurtmalarga qaytish</a>
+  </div>
+  <div class="row g-4">
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-transparent border-0 pt-4 px-4"><h5 class="fw-bold">Mahsulotlar</h5></div>
+        <div class="card-body p-0">
+          {% for item in order.items.all %}
+          <div class="d-flex align-items-center p-3 border-bottom gap-3">
+            {% if item.book and item.book.cover_image %}
+            <img src="{{ item.book.cover_image.url }}" width="60" height="80" style="object-fit:cover;border-radius:6px" alt="{{ item.book.title }}">
+            {% else %}
+            <div class="bg-light rounded d-flex align-items-center justify-content-center" style="width:60px;height:80px"><i class="fas fa-book text-muted"></i></div>
+            {% endif %}
+            <div class="flex-grow-1">
+              <h6 class='mb-0 fw-semibold'>{% if item.book %}<a href='{{ item.book.get_absolute_url }}' class='text-decoration-none text-dark'>{{ item.book.title }}</a>{% else %}Kitob mavjud emas{% endif %}</h6>
+              <span class="text-muted small">Miqdor: {{ item.quantity }} x {{ item.price }} so'm</span>
+            </div>
+            <span class="fw-bold">{{ item.total }} so'm</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm mb-3">
+        <div class="card-body p-4">
+          <h5 class="fw-bold mb-3">Buyurtma xulosasi</h5>
+          <div class="d-flex justify-content-between mb-1"><span class="text-muted">Jami narx</span><span>{{ order.subtotal }} so'm</span></div>
+          <div class="d-flex justify-content-between mb-1"><span class="text-muted">Yetkazib berish</span><span>{{ order.shipping_cost }} so'm</span></div>
+          <div class="d-flex justify-content-between mb-1"><span class="text-muted">Soliq</span><span>{{ order.tax }} so'm</span></div>
+          {% if order.discount %}
+          <div class="d-flex justify-content-between mb-1 text-danger"><span>Chegirma</span><span>-{{ order.discount }} so'm</span></div>
+          {% endif %}
+          <hr>
+          <div class="d-flex justify-content-between fw-bold fs-5"><span>Jami</span><span class="text-primary">{{ order.total }} so'm</span></div>
+        </div>
+      </div>
+      <div class="card border-0 shadow-sm mb-3">
+        <div class="card-body p-4">
+          <h5 class="fw-bold mb-3">Holat</h5>
+          <p class="mb-1"><span class="text-muted">Buyurtma holati:</span> <span class="badge bg-warning text-dark">{{ order.get_status_display }}</span></p>
+          <p class="mb-1"><span class="text-muted">To'lov:</span> <span class="badge bg-info">{{ order.get_payment_status_display }}</span></p>
+          <p class="mb-0"><span class="text-muted">To'lov usuli:</span> {{ order.get_payment_method_display }}</p>
+        </div>
+      </div>
+      {% if order.shipping_address %}
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+          <h5 class="fw-bold mb-3">Yetkazib berish manzili</h5>
+          <p class="mb-0"><strong>{{ order.shipping_address.full_name }}</strong><br>
+          {{ order.shipping_address.address_line1 }}<br>
+          {% if order.shipping_address.address_line2 %}{{ order.shipping_address.address_line2 }}<br>{% endif %}
+          {{ order.shipping_address.city }}, {{ order.shipping_address.country }} {{ order.shipping_address.postal_code }}<br>
+          <i class="fas fa-phone me-1"></i>{{ order.shipping_address.phone }}</p>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

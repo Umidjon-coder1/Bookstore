@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}To'lov — Kitob Do'kon{% endblock %}
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-5">
+          <h3 class="fw-bold mb-2"><i class="fas fa-credit-card me-2 text-primary"></i>To'lovni yakunlash</h3>
+          <p class="text-muted mb-4">Buyurtma: <strong>{{ order.order_number }}</strong></p>
+          <div class="d-flex justify-content-between fw-bold fs-4 mb-4">
+            <span>To'lov miqdori</span><span class="text-primary">{{ order.total }} so'm</span>
+          </div>
+          {% if client_secret %}
+          <div id="stripe-form">
+            <div id="card-element" class="form-control p-3 mb-3"></div>
+            <div id="card-errors" class="text-danger small mb-3"></div>
+            <button id="stripe-submit" class="btn btn-primary w-100 btn-lg">{{ order.total }} so'm to'lash</button>
+          </div>
+          {% else %}
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="payment_method" value="{{ order.payment_method }}">
+            <button type="submit" class="btn btn-primary w-100 btn-lg">To'lovni tasdiqlash</button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

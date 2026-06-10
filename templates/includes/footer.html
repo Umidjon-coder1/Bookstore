@@ -1,0 +1,91 @@
+{% load static %}
+<footer class="site-footer">
+  <div class="container">
+    <div class="row g-5">
+
+      <!-- Brand + newsletter -->
+      <div class="col-lg-4 col-md-6">
+        <div class="footer-brand">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <div style="width:38px;height:38px;background:var(--nav-accent);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--nav-bg);font-size:18px;flex-shrink:0">
+              <i class="fas fa-book-open"></i>
+            </div>
+            <span class="brand-name">Kitob Do'kon</span>
+          </div>
+          <p>Sizning sevimli onlayn kitob do'koningiz. Har bir janrda minglab kitoblarni kashf eting — abadiy klassikalardan eng so'nggi bestsellerlarigacha.</p>
+          <div class="footer-socials">
+            <a href="#" class="social-link" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+            <a href="#" class="social-link" aria-label="Twitter / X"><i class="fab fa-x-twitter"></i></a>
+            <a href="#" class="social-link" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+            <a href="#" class="social-link" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+          </div>
+        </div>
+        <div class="mt-4">
+          <p style="font-size:.78rem;color:rgba(255,255,255,.52);margin-bottom:8px">Yangi kitoblar va chegirmalar pochta orqali:</p>
+          <div class="footer-newsletter-input">
+            <input type="email" placeholder="email@manzil.uz" aria-label="Yangiliklar">
+            <button type="button">Obuna bo'lish</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Do'kon -->
+      <div class="col-lg-2 col-md-3 col-6">
+        <h6 class="footer-heading">Do'kon</h6>
+        <ul class="footer-links">
+          <li><a href="{% url 'books:list' %}">Barcha kitoblar</a></li>
+          <li><a href="{% url 'books:list' %}?on_sale=true">Chegirmalar</a></li>
+          <li><a href="{% url 'books:list' %}?ordering=-rating">Eng yaxshilari</a></li>
+          <li><a href="{% url 'books:list' %}?ordering=-created_at">Yangi kelganlar</a></li>
+          <li><a href="{% url 'books:search' %}">Qidirish</a></li>
+        </ul>
+      </div>
+
+      <!-- Hisob -->
+      <div class="col-lg-2 col-md-3 col-6">
+        <h6 class="footer-heading">Hisob</h6>
+        <ul class="footer-links">
+          {% if user.is_authenticated %}
+          <li><a href="{% url 'users:profile' %}">Mening profilim</a></li>
+          <li><a href="{% url 'orders:list' %}">Buyurtmalarim</a></li>
+          <li><a href="{% url 'wishlist:wishlist' %}">Istaklar ro'yxati</a></li>
+          <li><a href="{% url 'cart:cart' %}">Savat</a></li>
+          {% else %}
+          <li><a href="{% url 'users:login' %}">Kirish</a></li>
+          <li><a href="{% url 'users:register' %}">Ro'yxatdan o'tish</a></li>
+          <li><a href="{% url 'users:password_reset' %}">Parolni unutdingizmi?</a></li>
+          {% endif %}
+        </ul>
+      </div>
+
+      <!-- Aloqa -->
+      <div class="col-lg-4 col-md-6">
+        <h6 class="footer-heading">Aloqa va Qo'llab-quvvatlash</h6>
+        <div class="footer-contact-item"><i class="fas fa-map-marker-alt"></i><span>Amir Temur ko'chasi 108, Toshkent, O'zbekiston</span></div>
+        <div class="footer-contact-item"><i class="fas fa-phone-alt"></i><span>+998 90 123 45 67</span></div>
+        <div class="footer-contact-item"><i class="fas fa-envelope"></i><span>info@kitobdukon.uz</span></div>
+        <div class="footer-contact-item"><i class="fas fa-clock"></i><span>Du–Shan: 9:00 – 18:00</span></div>
+        <!-- To'lov usullari -->
+        <div class="d-flex gap-2 flex-wrap mt-3">
+          <span style="background:rgba(255,255,255,.08);padding:5px 11px;border-radius:6px;font-size:.73rem;color:rgba(255,255,255,.45)"><i class="fab fa-cc-visa me-1"></i>Visa</span>
+          <span style="background:rgba(255,255,255,.08);padding:5px 11px;border-radius:6px;font-size:.73rem;color:rgba(255,255,255,.45)"><i class="fab fa-cc-mastercard me-1"></i>MC</span>
+          <span style="background:rgba(255,255,255,.08);padding:5px 11px;border-radius:6px;font-size:.73rem;color:rgba(255,255,255,.45)"><i class="fab fa-cc-paypal me-1"></i>PayPal</span>
+          <span style="background:rgba(255,255,255,.08);padding:5px 11px;border-radius:6px;font-size:.73rem;color:rgba(255,255,255,.45)"><i class="fab fa-cc-stripe me-1"></i>Stripe</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <div class="container d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <p>&copy; {% now "Y" %} Kitob Do'kon. Barcha huquqlar himoyalangan.</p>
+      <div>
+        <a href="/api/docs/">API Hujjatlar</a>
+        <a href="/admin/">Admin</a>
+        <a href="#">Maxfiylik</a>
+        <a href="#">Shartlar</a>
+      </div>
+    </div>
+  </div>
+</footer>

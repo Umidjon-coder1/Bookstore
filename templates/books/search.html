@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}Qidiruv: {{ query }} — Kitob Do'kon{% endblock %}
+{% block content %}
+<div class="container py-5">
+  <div class="row mb-4">
+    <div class="col-md-8 mx-auto">
+      <form action="{% url 'books:search' %}" method="GET">
+        <div class="input-group input-group-lg">
+          <input type="search" class="form-control" name="q" value="{{ query }}" placeholder="Kitob, muallif, ISBN qidiring..." autofocus>
+          <button class="btn btn-primary" type="submit"><i class="fas fa-search me-1"></i>Qidirish</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  {% if query %}
+  <p class="text-muted mb-4"><strong>"{{ query }}"</strong> bo'yicha <strong>{{ books.paginator.count }}</strong> ta natija topildi</p>
+  {% endif %}
+  <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4">
+    {% for book in books %}
+    <div class="col">
+      <div class="card h-100 border-0 shadow-sm book-card">
+        <a href="{{ book.get_absolute_url }}">
+          {% if book.cover_image %}
+            <img src="{{ book.cover_image.url }}" class="card-img-top" style="height:200px;object-fit:cover" alt="{{ book.title }}">
+          {% else %}
+            <div class="bg-light d-flex align-items-center justify-content-center" style="height:200px">
+              <i class="fas fa-book fa-3x text-muted"></i>
+            </div>
+          {% endif %}
+        </a>
+        <div class="card-body p-3">
+          <p class="text-muted small mb-1">{{ book.author.name|default:"Noma'lum" }}</p>
+          <h6 class="fw-semibold"><a href="{{ book.get_absolute_url }}" class="text-decoration-none text-dark">{{ book.title|truncatechars:50 }}</a></h6>
+          <div class="d-flex justify-content-between align-items-center mt-auto">
+            <span class="fw-bold text-primary">{{ book.final_price }} so'm</span>
+            {% if book.stock_status == 'out_of_stock' %}<span class="badge bg-secondary small">Tugagan</span>{% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    {% if query %}
+    <div class="col-12 text-center py-5">
+      <i class="fas fa-search fa-4x text-muted mb-3"></i>
+      <h5 class="text-muted">"{{ query }}" bo'yicha kitoblar topilmadi</h5>
+      <a href="{% url 'books:list' %}" class="btn btn-primary mt-3">Barcha kitoblarga qarang</a>
+    </div>
+    {% endif %}
+    {% endfor %}
+  </div>
+  {% with books as page_obj %}
+  {% include 'includes/pagination.html' %}
+  {% endwith %}
+</div>
+{% endblock %}

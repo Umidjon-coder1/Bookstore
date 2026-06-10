@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}Buyurtmalarni boshqarish — Boshqaruv paneli{% endblock %}
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold">Buyurtmalarni boshqarish</h2>
+    <a href="{% url 'analytics:dashboard' %}" class="btn btn-outline-secondary btn-sm">Orqaga</a>
+  </div>
+  <div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead class="table-light"><tr><th>Buyurtma</th><th>Mijoz</th><th>Jami</th><th>Holat</th><th>To'lov</th><th>Sana</th><th>Amallar</th></tr></thead>
+        <tbody>
+        {% for order in orders %}
+        <tr>
+          <td class="fw-semibold small">{{ order.order_number }}</td>
+          <td class="small">{{ order.user.email }}</td>
+          <td class="fw-bold">{{ order.total }} so'm</td>
+          <td>
+            <select class="form-select form-select-sm status-select" data-order="{{ order.pk }}" style="width:130px">
+              {% for val, label in order.Status.choices %}
+              <option value="{{ val }}" {% if order.status == val %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </td>
+          <td><span class="badge {% if order.payment_status == 'paid' %}bg-success{% elif order.payment_status == 'failed' %}bg-danger{% else %}bg-secondary{% endif %}">{{ order.get_payment_status_display }}</span></td>
+          <td class="small text-muted">{{ order.created_at|date:"j M, Y" }}</td>
+          <td><a href="{% url 'orders:detail' order.order_number %}" class="btn btn-sm btn-outline-primary" target="_blank">Ko'rish</a></td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+document.querySelectorAll(".status-select").forEach(function(sel) {
+  sel.addEventListener("change", function() {
+    const orderId = this.dataset.order;
+    const status = this.value;
+    fetch("/analytics/dashboard/orders/", {
+      method: "POST",
+      headers: {"Content-Type": "application/x-www-form-urlencoded", "X-CSRFToken": window.CSRF_TOKEN, "X-Requested-With": "XMLHttpRequest"},
+      body: "order_id=" + orderId + "&status=" + status
+    }).then(r => r.json()).then(data => {
+      if (data.success) {
+        showToast("Buyurtma holati yangilandi", "success");
+      }
+    });
+  });
+});
+</script>
+{% endblock %}
