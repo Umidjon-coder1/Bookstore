@@ -6,6 +6,8 @@ import sys
 
 def main():
     """Run administrative tasks."""
+    # Respect DJANGO_SETTINGS_MODULE if already set (e.g. Railway sets it to
+    # production). Local devs can override via their .env or shell.
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings.development')
     try:
         from django.core.management import execute_from_command_line
