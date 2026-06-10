@@ -3,8 +3,10 @@ import os
 
 DEBUG = False
 
+# ── Secret key ────────────────────────────────────────────────────────────────
+SECRET_KEY = os.environ.get('SECRET_KEY', 'fallback-insecure-key-change-me')
+
 # ── Allowed hosts ─────────────────────────────────────────────────────────────
-# Accept comma-separated list from env, plus Railway's auto-injected domain
 _allowed = os.environ.get('ALLOWED_HOSTS', '*')
 ALLOWED_HOSTS = [h.strip() for h in _allowed.split(',') if h.strip()]
 _railway_domain = os.environ.get('RAILWAY_PUBLIC_DOMAIN', '')
@@ -13,10 +15,9 @@ if _railway_domain and _railway_domain not in ALLOWED_HOSTS:
 if not ALLOWED_HOSTS:
     ALLOWED_HOSTS = ['*']
 
-# ── Secret key ────────────────────────────────────────────────────────────────
-SECRET_KEY = os.environ.get('SECRET_KEY', SECRET_KEY)
-
 # ── Database ──────────────────────────────────────────────────────────────────
+# Railway PostgreSQL plugin injects DATABASE_URL automatically.
+# Fall back to SQLite so the app still starts if no DB plugin is attached yet.
 _database_url = os.environ.get('DATABASE_URL', '')
 if _database_url:
     import dj_database_url
@@ -24,15 +25,12 @@ if _database_url:
         'default': dj_database_url.parse(_database_url, conn_max_age=600)
     }
 else:
+    # SQLite fallback — works but data is lost on redeploy.
+    # Add a PostgreSQL plugin in Railway to persist data.
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.environ.get('DB_NAME', 'bookstore'),
-            'USER': os.environ.get('DB_USER', 'postgres'),
-            'PASSWORD': os.environ.get('DB_PASSWORD', ''),
-            'HOST': os.environ.get('DB_HOST', 'localhost'),
-            'PORT': os.environ.get('DB_PORT', '5432'),
-            'CONN_MAX_AGE': 600,
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': '/app/db.sqlite3',
         }
     }
 
