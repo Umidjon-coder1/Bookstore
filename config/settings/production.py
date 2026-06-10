@@ -41,17 +41,26 @@ if _railway_domain:
     CSRF_TRUSTED_ORIGINS.append(f'https://{_railway_domain}')
 
 # ── Database ──────────────────────────────────────────────────────────────────
-# Railway PostgreSQL plugin injects DATABASE_URL automatically.
-# Fall back to SQLite so the app still starts if no DB plugin is attached yet.
-_database_url = os.environ.get('DATABASE_URL', '')
+# Railway PostgreSQL: try DATABASE_PUBLIC_URL first (external), then DATABASE_URL (internal).
+# Fall back to SQLite if neither is set.
+import dj_database_url as _dj_db_url
+
+_database_url = (
+    os.environ.get('DATABASE_PUBLIC_URL', '')   # Railway public/external URL
+    or os.environ.get('DATABASE_URL', '')        # Railway internal URL
+)
+
+# Log which URL is being used (without password)
 if _database_url:
-    import dj_database_url
+    _safe = _database_url.split('@')[-1] if '@' in _database_url else _database_url
+    print(f">>> DB URL host: {_safe}")
+
+if _database_url:
     DATABASES = {
-        'default': dj_database_url.parse(_database_url, conn_max_age=600)
+        'default': _dj_db_url.parse(_database_url, conn_max_age=600, ssl_require=False)
     }
 else:
-    # SQLite fallback — works but data is lost on redeploy.
-    # Add a PostgreSQL plugin in Railway to persist data.
+    print(">>> No DATABASE_URL found — using SQLite fallback")
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
