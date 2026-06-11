@@ -20,7 +20,7 @@ class RegisterView(View):
         form = RegistrationForm(request.POST)
         if form.is_valid():
             user = form.save()
-            login(request, user)
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
             messages.success(request, 'Ro\'yxatdan o\'tish muvaffaqiyatli! Iltimos, elektron pochtangizni tasdiqlang.')
             return redirect('books:list')
         return render(request, 'users/register.html', {'form': form})
