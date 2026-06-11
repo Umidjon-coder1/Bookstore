@@ -74,6 +74,20 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # when a template references a static file not in the manifest
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
+# ── Cloudinary media storage ──────────────────────────────────────────────────
+_cloudinary_url = os.environ.get('CLOUDINARY_URL', '')
+if _cloudinary_url:
+    import cloudinary
+    import cloudinary.uploader
+    import cloudinary.api
+
+    cloudinary.config(cloudinary_url=_cloudinary_url)
+
+    INSTALLED_APPS += ['cloudinary_storage', 'cloudinary']
+
+    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+    MEDIA_URL = '/media/'
+
 # ── Security ──────────────────────────────────────────────────────────────────
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
