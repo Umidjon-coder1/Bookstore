@@ -187,6 +187,21 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  /* ─── Remove coupon ─────────────────────────────────────────── */
+  const removeCouponBtn = document.getElementById('removeCouponBtn');
+  if (removeCouponBtn) {
+    removeCouponBtn.addEventListener('click', function () {
+      fetch('/cart/remove-coupon/', {
+        method: 'POST',
+        headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': getCSRF() },
+      })
+        .then(r => r.json())
+        .then(data => {
+          if (data.success) location.reload();
+        });
+    });
+  }
+
   /* ─── Search Autocomplete ───────────────────────────────────── */
   const searchInput = document.getElementById('mainSearchInput');
   const acDropdown  = document.getElementById('searchAutocomplete');

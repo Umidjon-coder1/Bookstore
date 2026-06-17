@@ -55,12 +55,22 @@ class CheckoutView(View):
             )
 
         subtotal = cart.subtotal
+        shipping_cost = Decimal('0') if subtotal >= Decimal('35000') else Decimal('5000')
+
+        coupon_code = request.session.get('coupon_code', '')
+        discount = Decimal('0')
+        if coupon_code:
+            from apps.payments.models import Coupon
+            coupon = Coupon.objects.filter(code=coupon_code).first()
+            if coupon and coupon.is_valid():
+                discount = coupon.get_discount_amount(subtotal)
+
         order = Order.objects.create(
             user=request.user,
             shipping_address=address,
             payment_method=payment_method,
             subtotal=subtotal,
-            shipping_cost=Decimal('5000.00'),
+            shipping_cost=shipping_cost,
             tax=round(subtotal * Decimal('0.1'), 2),
         )
 
@@ -75,6 +85,7 @@ class CheckoutView(View):
             item.book.save()
 
         cart.items.all().delete()
+        request.session.pop('coupon_code', None)
 
         messages.success(request, f'{order.order_number} raqamli buyurtma muvaffaqiyatli qabul qilindi!')
         return redirect('orders:detail', order_number=order.order_number)

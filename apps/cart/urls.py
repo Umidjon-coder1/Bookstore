@@ -8,4 +8,5 @@ urlpatterns = [
     path('add/<int:book_id>/', views.AddToCartView.as_view(), name='add'),
     path('remove/<int:item_id>/', views.RemoveFromCartView.as_view(), name='remove'),
     path('update/<int:item_id>/', views.UpdateCartView.as_view(), name='update'),
+    path('remove-coupon/', views.RemoveCouponView.as_view(), name='remove-coupon'),
 ]

@@ -80,10 +80,17 @@
             {% if cart.subtotal >= 35000 %}Bepul{% else %}5 000 so'm{% endif %}
           </span>
         </div>
+        {% if coupon_code and discount %}
+        <div class="cart-summary-row" id="discountRow">
+          <span style="color:var(--c-success)">Kupon ({{ coupon_code }}) <button type="button" id="removeCouponBtn" style="background:none;border:none;color:var(--c-danger);font-size:.7rem;cursor:pointer;padding:0 4px;vertical-align:middle" title="Olib tashlash">✕</button></span>
+          <span style="color:var(--c-success);font-weight:600" id="cartDiscount">-{{ discount }} so'm</span>
+        </div>
+        {% else %}
         <div class="cart-summary-row" id="discountRow" style="display:none">
           <span style="color:var(--c-success)">Kupon chegirmasi</span>
           <span style="color:var(--c-success);font-weight:600" id="cartDiscount">-0 so'm</span>
         </div>
+        {% endif %}
         <div class="cart-summary-row" style="border-bottom:none;padding-top:12px">
           <span style="font-weight:800;font-size:1rem">Jami</span>
           <span style="font-weight:900;font-size:1.1rem;color:var(--c-primary)" id="cartTotal">

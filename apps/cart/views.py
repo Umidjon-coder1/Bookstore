@@ -21,8 +21,32 @@ def get_or_create_cart(request):
 
 class CartView(View):
     def get(self, request):
+        from decimal import Decimal
         cart = get_or_create_cart(request)
-        return render(request, 'cart/cart.html', {'cart': cart})
+        coupon_code = request.session.get('coupon_code', '')
+        discount = Decimal('0')
+        if coupon_code:
+            try:
+                from apps.payments.models import Coupon
+                coupon = Coupon.objects.filter(code=coupon_code).first()
+                if coupon and coupon.is_valid():
+                    discount = coupon.get_discount_amount(cart.subtotal)
+                else:
+                    request.session.pop('coupon_code', None)
+                    coupon_code = ''
+            except Exception:
+                pass
+        return render(request, 'cart/cart.html', {
+            'cart': cart,
+            'coupon_code': coupon_code,
+            'discount': discount,
+        })
+
+
+class RemoveCouponView(View):
+    def post(self, request):
+        request.session.pop('coupon_code', None)
+        return JsonResponse({'success': True})
 
 
 class AddToCartView(View):
