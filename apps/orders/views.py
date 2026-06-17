@@ -25,13 +25,15 @@ class CheckoutView(View):
             if coupon and coupon.is_valid():
                 discount = coupon.get_discount_amount(cart.subtotal)
         shipping = Decimal('0') if cart.subtotal >= Decimal('35000') else Decimal('5000')
-        total = max(Decimal('0'), cart.subtotal + shipping - discount)
+        tax = round(cart.subtotal * Decimal('0.1'), 2)
+        total = max(Decimal('0'), cart.subtotal + shipping + tax - discount)
         return render(request, 'orders/checkout.html', {
             'cart': cart,
             'addresses': addresses,
             'coupon_code': coupon_code,
             'discount': discount,
             'shipping': shipping,
+            'tax': tax,
             'total': total,
         })
 
