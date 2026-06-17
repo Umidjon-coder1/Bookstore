@@ -17,7 +17,21 @@ class CheckoutView(View):
             messages.warning(request, 'Savatingiz bo\'sh.')
             return redirect('cart:cart')
         addresses = Address.objects.filter(user=request.user)
-        return render(request, 'orders/checkout.html', {'cart': cart, 'addresses': addresses})
+        coupon_code = request.session.get('coupon_code', '')
+        discount = Decimal('0')
+        if coupon_code:
+            from apps.payments.models import Coupon
+            coupon = Coupon.objects.filter(code=coupon_code).first()
+            if coupon and coupon.is_valid():
+                discount = coupon.get_discount_amount(cart.subtotal)
+        total = max(Decimal('0'), cart.subtotal - discount)
+        return render(request, 'orders/checkout.html', {
+            'cart': cart,
+            'addresses': addresses,
+            'coupon_code': coupon_code,
+            'discount': discount,
+            'total': total,
+        })
 
     def post(self, request):
         cart = get_or_create_cart(request)

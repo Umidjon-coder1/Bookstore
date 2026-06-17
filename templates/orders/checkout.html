@@ -75,9 +75,15 @@
           {% endfor %}
           <hr>
           <div class="d-flex justify-content-between"><span class="text-muted">Jami narx</span><span>{{ cart.subtotal }} so'm</span></div>
+          {% if discount %}
+          <div class="d-flex justify-content-between text-success">
+            <span><i class="fas fa-tag me-1"></i>Kupon chegirmasi ({{ coupon_code }})</span>
+            <span>-{{ discount }} so'm</span>
+          </div>
+          {% endif %}
           <div class="d-flex justify-content-between"><span class="text-muted">Yetkazib berish</span><span>5 000 so'm</span></div>
           <hr>
-          <div class="d-flex justify-content-between fw-bold fs-5"><span>Jami</span><span class="text-primary">{{ cart.subtotal }} so'm</span></div>
+          <div class="d-flex justify-content-between fw-bold fs-5"><span>Jami</span><span class="text-primary">{{ total }} so'm</span></div>
         </div>
       </div>
     </div>
