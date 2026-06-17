@@ -143,8 +143,8 @@ document.addEventListener('DOMContentLoaded', function () {
         .then(data => {
           if (row) row.remove();
           if (data.total_items !== undefined) updateCartBadge(data.total_items);
-          refreshCartSummary();
-          showToast('Item removed from cart', 'info');
+          refreshCartSummary(data.subtotal || null);
+          showToast('Mahsulot savatdan o\'chirildi', 'info');
         })
         .catch(() => window.location.reload());
     });
@@ -482,20 +482,64 @@ function updateCartItem(itemId, qty) {
 function refreshCartSummary(subtotal) {
   const subtotalEl = document.getElementById('cartSubtotal');
   const totalEl    = document.getElementById('cartTotal');
-  if (subtotal) {
-    if (subtotalEl) subtotalEl.textContent = `$${parseFloat(subtotal).toFixed(2)}`;
-    if (totalEl)    totalEl.textContent    = `$${(parseFloat(subtotal) + 5).toFixed(2)}`;
+
+  // If subtotal not passed, recalculate from item prices on the page
+  if (!subtotal) {
+    let sum = 0;
+    document.querySelectorAll('[id^="cart-row-"]').forEach(function (row) {
+      const priceEl = row.querySelector('.cart-qty-input');
+      const unitPriceEl = row.querySelector('[data-unit-price]');
+      if (unitPriceEl && priceEl) {
+        sum += parseFloat(unitPriceEl.dataset.unitPrice || 0) * (parseInt(priceEl.value) || 1);
+      }
+    });
+    if (sum > 0) subtotal = sum;
+    else if (subtotalEl) {
+      subtotal = parseFloat(subtotalEl.textContent.replace(/[^\d.]/g, '')) || 0;
+    }
   }
+
+  if (subtotal !== undefined && subtotal !== null) {
+    const sub = parseFloat(subtotal);
+    const shipping = sub >= 35000 ? 0 : 5000;
+    const discountEl = document.getElementById('cartDiscount');
+    const discount = discountEl
+      ? parseFloat(discountEl.textContent.replace(/[^\d.]/g, '')) || 0
+      : 0;
+    const total = Math.max(0, sub + shipping - discount);
+    if (subtotalEl) subtotalEl.textContent = `${sub.toLocaleString('uz-UZ')} so'm`;
+    if (totalEl)    totalEl.textContent    = `${total.toLocaleString('uz-UZ')} so'm`;
+
+    // Update shipping display
+    const shippingEls = document.querySelectorAll('.cart-summary-row span[id]');
+    document.querySelectorAll('.cart-summary-row').forEach(function (row) {
+      const label = row.querySelector('span:first-child');
+      const val   = row.querySelector('span:last-child');
+      if (label && val && label.textContent.trim().startsWith('Yetkazib')) {
+        if (shipping === 0) {
+          val.textContent = 'Bepul';
+          val.style.color = 'var(--c-success)';
+        } else {
+          val.textContent = '5 000 so\'m';
+          val.style.color = '';
+        }
+      }
+    });
+  }
+
   // Check if cart is empty
   const rows = document.querySelectorAll('[id^="cart-row-"]');
   if (rows.length === 0) {
     const cartWrapper = document.getElementById('cartContent');
     if (cartWrapper) {
       cartWrapper.innerHTML = `
-        <div class="text-center py-5">
-          <div style="font-size:4rem;opacity:.2">🛒</div>
-          <h4 style="color:var(--text-secondary);margin-top:16px">Your cart is empty</h4>
-          <a href="/" class="btn btn-primary mt-3 px-4">Browse Books</a>
+        <div class="text-center py-5" style="padding:60px 0 !important">
+          <div style="font-size:5rem;opacity:.2;margin-bottom:20px">🛒</div>
+          <h3 style="font-weight:700;color:var(--t-secondary);margin-bottom:8px">Savatingiz bo'sh</h3>
+          <p style="color:var(--t-muted);margin-bottom:24px">Minglab ajoyib kitoblarni kashf eting va savatga qo'shing.</p>
+          <a href="/" class="btn-add-cart" style="background:var(--c-primary);color:#fff">
+            <i class="fas fa-book-open me-2"></i>Kitoblarga qarang
+          </a>
         </div>`;
     }
   }

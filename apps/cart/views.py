@@ -79,7 +79,7 @@ class RemoveFromCartView(View):
         item.delete()
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             cart = get_or_create_cart(request)
-            return JsonResponse({'success': True, 'total_items': cart.total_items})
+            return JsonResponse({'success': True, 'total_items': cart.total_items, 'subtotal': str(cart.subtotal)})
         messages.success(request, 'Mahsulot savatdan o\'chirildi.')
         return redirect('cart:cart')
 
