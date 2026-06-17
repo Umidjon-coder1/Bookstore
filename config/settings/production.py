@@ -80,12 +80,7 @@ if _cloudinary_url:
     import cloudinary
     cloudinary.config(cloudinary_url=_cloudinary_url)
 
-    # cloudinary_storage MUST come before django.contrib.staticfiles
-    _staticfiles_idx = next(
-        (i for i, a in enumerate(INSTALLED_APPS) if a == 'django.contrib.staticfiles'), 0
-    )
-    INSTALLED_APPS.insert(_staticfiles_idx, 'cloudinary_storage')
-    INSTALLED_APPS.append('cloudinary')
+    INSTALLED_APPS += ['cloudinary_storage', 'cloudinary']
 
     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
     MEDIA_URL = '/media/'
