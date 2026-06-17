@@ -83,8 +83,8 @@
           {% endif %}
           <div class="d-flex justify-content-between">
             <span class="text-muted">Yetkazib berish</span>
-            <span {% if cart.subtotal >= 35000 %}class="text-success"{% endif %}>
-              {% if cart.subtotal >= 35000 %}Bepul{% else %}5 000 so'm{% endif %}
+            <span {% if shipping == 0 %}class="text-success"{% endif %}>
+              {% if shipping == 0 %}Bepul{% else %}5 000 so'm{% endif %}
             </span>
           </div>
           <hr>

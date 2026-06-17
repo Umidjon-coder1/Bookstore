@@ -24,12 +24,14 @@ class CheckoutView(View):
             coupon = Coupon.objects.filter(code=coupon_code).first()
             if coupon and coupon.is_valid():
                 discount = coupon.get_discount_amount(cart.subtotal)
-        total = max(Decimal('0'), cart.subtotal - discount)
+        shipping = Decimal('0') if cart.subtotal >= Decimal('35000') else Decimal('5000')
+        total = max(Decimal('0'), cart.subtotal + shipping - discount)
         return render(request, 'orders/checkout.html', {
             'cart': cart,
             'addresses': addresses,
             'coupon_code': coupon_code,
             'discount': discount,
+            'shipping': shipping,
             'total': total,
         })
 
@@ -72,6 +74,7 @@ class CheckoutView(View):
             subtotal=subtotal,
             shipping_cost=shipping_cost,
             tax=round(subtotal * Decimal('0.1'), 2),
+            discount=discount,
         )
 
         for item in cart.items.select_related('book'):

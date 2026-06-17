@@ -36,10 +36,15 @@ class CartView(View):
                     coupon_code = ''
             except Exception:
                 pass
+        from decimal import Decimal as _D
+        shipping = _D('0') if cart.subtotal >= _D('35000') else _D('5000')
+        cart_total = max(_D('0'), cart.subtotal + shipping - discount)
         return render(request, 'cart/cart.html', {
             'cart': cart,
             'coupon_code': coupon_code,
             'discount': discount,
+            'shipping': shipping,
+            'cart_total': cart_total,
         })
 
 

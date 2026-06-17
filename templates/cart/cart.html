@@ -76,8 +76,8 @@
         </div>
         <div class="cart-summary-row">
           <span style="color:var(--t-secondary)">Yetkazib berish</span>
-          <span style="color:var(--c-success);font-weight:600">
-            {% if cart.subtotal >= 35000 %}Bepul{% else %}5 000 so'm{% endif %}
+          <span {% if shipping == 0 %}style="color:var(--c-success);font-weight:600"{% else %}style="font-weight:600"{% endif %}>
+            {% if shipping == 0 %}Bepul{% else %}5 000 so'm{% endif %}
           </span>
         </div>
         {% if coupon_code and discount %}
@@ -94,7 +94,7 @@
         <div class="cart-summary-row" style="border-bottom:none;padding-top:12px">
           <span style="font-weight:800;font-size:1rem">Jami</span>
           <span style="font-weight:900;font-size:1.1rem;color:var(--c-primary)" id="cartTotal">
-            {{ cart.subtotal }} so'm
+            {{ cart_total }} so'm
           </span>
         </div>
 
