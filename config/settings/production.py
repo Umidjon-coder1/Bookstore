@@ -78,15 +78,18 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 _cloudinary_url = os.environ.get('CLOUDINARY_URL', '')
 if _cloudinary_url:
     import cloudinary
-    import cloudinary.uploader
-    import cloudinary.api
-
     cloudinary.config(cloudinary_url=_cloudinary_url)
 
     INSTALLED_APPS += ['cloudinary_storage', 'cloudinary']
 
     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-    MEDIA_URL = '/media/'
+    # django-cloudinary-storage uses Cloudinary CDN URLs — MEDIA_URL prefix is not prepended
+    MEDIA_URL = 'https://res.cloudinary.com/'
+    CLOUDINARY_STORAGE = {
+        'CLOUD_NAME': cloudinary.config().cloud_name,
+        'API_KEY': cloudinary.config().api_key,
+        'API_SECRET': cloudinary.config().api_secret,
+    }
 
 # ── Security ──────────────────────────────────────────────────────────────────
 SECURE_BROWSER_XSS_FILTER = True
