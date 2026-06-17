@@ -166,6 +166,18 @@ document.addEventListener('DOMContentLoaded', function () {
         .then(data => {
           if (data.success) {
             showToast(data.message || `Kupon qo'llanildi!`, 'success');
+            const discount = parseFloat(data.discount) || 0;
+            const subtotalEl = document.getElementById('cartSubtotal');
+            const totalEl = document.getElementById('cartTotal');
+            const discountRow = document.getElementById('discountRow');
+            const discountEl = document.getElementById('cartDiscount');
+            if (subtotalEl && totalEl && discount > 0) {
+              const subtotal = parseFloat(subtotalEl.textContent.replace(/[^\d.]/g, '')) || 0;
+              const newTotal = Math.max(0, subtotal - discount);
+              if (discountRow) discountRow.style.display = '';
+              if (discountEl) discountEl.textContent = `-${discount.toLocaleString()} so'm`;
+              totalEl.textContent = `${newTotal.toLocaleString()} so'm`;
+            }
             refreshCartSummary();
           } else {
             showToast(data.message || 'Kupon kodi noto\'g\'ri yoki muddati o\'tgan', 'error');

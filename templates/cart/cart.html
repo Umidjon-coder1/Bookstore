@@ -80,6 +80,10 @@
             {% if cart.subtotal >= 35000 %}Bepul{% else %}5 000 so'm{% endif %}
           </span>
         </div>
+        <div class="cart-summary-row" id="discountRow" style="display:none">
+          <span style="color:var(--c-success)">Kupon chegirmasi</span>
+          <span style="color:var(--c-success);font-weight:600" id="cartDiscount">-0 so'm</span>
+        </div>
         <div class="cart-summary-row" style="border-bottom:none;padding-top:12px">
           <span style="font-weight:800;font-size:1rem">Jami</span>
           <span style="font-weight:900;font-size:1.1rem;color:var(--c-primary)" id="cartTotal">
