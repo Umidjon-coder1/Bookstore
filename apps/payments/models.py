@@ -50,10 +50,11 @@ class Coupon(models.Model):
 
     def is_valid(self):
         now = timezone.now()
+        uses_ok = self.max_uses == 0 or self.used_count < self.max_uses
         return (
             self.is_active and
             self.valid_from <= now <= self.valid_until and
-            self.used_count < self.max_uses
+            uses_ok
         )
 
     def get_discount_amount(self, order_total):

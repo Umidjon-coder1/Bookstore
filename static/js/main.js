@@ -168,10 +168,10 @@ document.addEventListener('DOMContentLoaded', function () {
             showToast(`Coupon applied! You save $${data.discount}`, 'success');
             refreshCartSummary();
           } else {
-            showToast(data.message || 'Invalid coupon', 'error');
+            showToast(data.message || 'Kupon kodi noto\'g\'ri yoki muddati o\'tgan', 'error');
           }
         })
-        .catch(() => showToast('Could not apply coupon', 'error'));
+        .catch(() => showToast('Kupon qo\'llanilmadi, qayta urinib ko\'ring', 'error'));
     });
   }
 
