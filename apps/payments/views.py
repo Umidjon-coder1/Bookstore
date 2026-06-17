@@ -1,8 +1,9 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.views import View
+from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.conf import settings
 from .models import Payment, Coupon
@@ -60,6 +61,33 @@ class PaymentSuccessView(View):
     def get(self, request, order_number):
         order = get_object_or_404(Order, order_number=order_number, user=request.user)
         return render(request, 'payments/success.html', {'order': order})
+
+
+class ApplyCouponView(View):
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+            code = data.get('code', '').strip()
+        except Exception:
+            code = request.POST.get('code', '').strip()
+
+        if not code:
+            return JsonResponse({'success': False, 'message': 'Kupon kodi kiritilmagan'})
+
+        coupon = Coupon.objects.filter(code=code).first()
+        if not coupon or not coupon.is_valid():
+            return JsonResponse({'success': False, 'message': 'Kupon kodi noto\'g\'ri yoki muddati o\'tgan'})
+
+        request.session['coupon_code'] = code
+        from apps.cart.views import get_or_create_cart
+        cart = get_or_create_cart(request)
+        discount = coupon.get_discount_amount(cart.subtotal)
+        return JsonResponse({
+            'success': True,
+            'discount': str(discount),
+            'coupon_code': code,
+            'message': f'Kupon qo\'llanildi! {discount} so\'m chegirma'
+        })
 
 
 def stripe_webhook(request):

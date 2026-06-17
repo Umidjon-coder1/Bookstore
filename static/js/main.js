@@ -165,7 +165,7 @@ document.addEventListener('DOMContentLoaded', function () {
         .then(r => r.json())
         .then(data => {
           if (data.success) {
-            showToast(`Coupon applied! You save $${data.discount}`, 'success');
+            showToast(data.message || `Kupon qo'llanildi!`, 'success');
             refreshCartSummary();
           } else {
             showToast(data.message || 'Kupon kodi noto\'g\'ri yoki muddati o\'tgan', 'error');
